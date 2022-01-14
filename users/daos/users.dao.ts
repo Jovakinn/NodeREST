@@ -4,6 +4,7 @@ import { PutUserDto} from "../dto/put.user.dto";
 import shortid from "shortid";
 import debug from "debug";
 import mongooseService from "../../common/services/mongoose.service";
+import express from "express";
 
 const log: debug.IDebugger = debug('app:in-memory-dao');
 
@@ -38,6 +39,12 @@ class UsersDao {
 
     async getUserByEmail(email: string) {
         return this.User.findOne({ email: email }).exec();
+    }
+
+    async getUserByEmailWithPassword(email: string) {
+        return this.User.findOne({ email: email })
+            .select('_id email permissionFlags +password')
+            .exec();
     }
 
     async getUserById(userId: string) {
