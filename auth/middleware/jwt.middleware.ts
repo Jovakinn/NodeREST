@@ -8,7 +8,7 @@ import usersService from '../../users/services/users.service';
 const jwtSecret: string = process.env.JWT_SECRET;
 
 class JwtMiddleware {
-    verifyRefreshBodyField(
+    async verifyRefreshBodyField(
         req: express.Request,
         res: express.Response,
         next: express.NextFunction
@@ -49,7 +49,7 @@ class JwtMiddleware {
         }
     }
 
-    validJWTNeeded(
+    async validJWTNeeded(
         req: express.Request,
         res: express.Response,
         next: express.NextFunction
