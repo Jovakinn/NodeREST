@@ -4,6 +4,9 @@ import UsersController from "./controllers/users.controller";
 import UsersMiddleware from "./middleware/users.middleware";
 import BodyValidationMiddleware from "../common/middleware/body.validation.middleware";
 import { body } from "express-validator";
+import {PermissionFlag} from "../auth/middleware/permissionflag.enum";
+import permissionMiddleware from "../common/middleware/permission.middleware";
+import jwtMiddleware from "../auth/middleware/jwt.middleware";
 
 export class UsersRoutes extends CommonRoutesConfig {
     constructor(app: express.Application) {
@@ -13,7 +16,14 @@ export class UsersRoutes extends CommonRoutesConfig {
     configureRoutes(): express.Application {
         this.app
             .route(`/users`)
-            .get(UsersController.listUsers)
+            .get(
+                jwtMiddleware.validJWTNeeded,
+                permissionMiddleware.permissionFlagRequired(
+                    PermissionFlag.ADMIN_PERMISSION
+                ),
+                UsersController.listUsers
+            )
+            .get()
             .post(
                 body('email').isEmail(),
                 body('password')
@@ -26,7 +36,11 @@ export class UsersRoutes extends CommonRoutesConfig {
         this.app.param(`userId`, UsersMiddleware.extractUserId);
         this.app
             .route(`/users/:userId`)
-            .all(UsersMiddleware.validateUserExists)
+            .all(
+                UsersMiddleware.validateUserExists,
+                jwtMiddleware.validJWTNeeded,
+                permissionMiddleware.onlySameUserOrAdminCanDoThisAction
+            )
             .get(UsersController.getUserById)
             .delete(UsersController.removeUser);
 

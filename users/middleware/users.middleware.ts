@@ -6,6 +6,23 @@ const log: debug.IDebugger = debug('app:users-controller');
 
 class UsersMiddleware {
 
+    async userCantChangePermission(
+        req: express.Request,
+        res: express.Response,
+        next: express.NextFunction
+    ) {
+        if (
+            'permissionFlags' in req.body &&
+            req.body.permissionFlags !== res.locals.user.permissionFlags
+        ) {
+            res.status(400).send({
+                errors: ['User cannot change permission flags'],
+            });
+        } else {
+            next();
+        }
+    }
+
     async validateSameEmailDoesntExist(
         req: express.Request,
         res: express.Response,
@@ -45,8 +62,7 @@ class UsersMiddleware {
         req: express.Request,
         res: express.Response,
         next: express.NextFunction) {
-        const user = await usersService.readById(req.params.email);
-        if (user && user.id === req.params.userId) {
+        if (res.locals.user._id === req.params.userId) {
             next();
         } else {
             res.status(400).send({
